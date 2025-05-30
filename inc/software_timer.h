@@ -23,15 +23,23 @@ extern "C" {
  *  public: define
  *---------------------------------------------------------------------*/
 
+#ifndef HAVE_STRUCT_TIMESPEC
+#define HAVE_STRUCT_TIMESPEC
 #ifndef _TIMESPEC_DEFINED
+#define _TIMESPEC_DEFINED
 
 //! @brief On non-Unix-based systems, it is not guaranteed that the `timespec` structure is available.
 //!
-#define _TIMESPEC_DEFINED
-struct timespec {
-    time_t tv_sec;   /* Seconds */
-    long tv_nsec;  /* Nanoseconds */
+struct timespec
+{
+    //! Seconds
+    time_t tv_sec;
+
+    //! Nanoseconds
+    long tv_nsec;
 };
+
+#endif
 #endif
 
 
@@ -39,8 +47,14 @@ struct timespec {
 
 //! @brief `inline` macro with compilation-specific attribute, it can be redefined for
 //!         a different compiler or platform if required.
-//!
-#define INLINE inline __attribute__((always_inline))
+  #if defined(_MSC_VER)
+    #define INLINE __forceinline
+  #elif defined(__GNUC__) || defined(__clang__)
+    #define INLINE inline __attribute__((always_inline))
+  #else
+    #define INLINE inline
+  #endif
+
 #endif
 
 
