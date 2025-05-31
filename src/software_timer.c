@@ -4,17 +4,12 @@
 
 #include "software_timer.h"
 
-// ceil, necessary for `MULTIPLE_TRIGGERS_MISSED`
 #include <math.h>
 
 
 /*---------------------------------------------------------------------*
  *  private: definitions
  *---------------------------------------------------------------------*/
-
-#define CEIL_TO_INT(TYPE, NUMBER) ( ((TYPE)(NUMBER)) + ( (NUMBER) > ((TYPE)(NUMBER)) ) )
-
-
 /*---------------------------------------------------------------------*
  *  private: typedefs
  *---------------------------------------------------------------------*/
@@ -103,7 +98,7 @@ void software_timer_sub_timestamp(software_timer_timestamp_t * result_and_minuen
 
     overflows -= subtrahend->overflows;
 
-    result_and_minuend->counter = counter;
+    result_and_minuend->counter = (uint16_t)counter;
     result_and_minuend->overflows = overflows;
 }
 
@@ -113,7 +108,11 @@ double software_timer_get_time(software_timer_timestamp_t * timestamp)
 
     double seconds_per_tick = timer_info->seconds_per_tick;
     double counter = seconds_per_tick * timestamp->counter;
-    double overflow = seconds_per_tick * timestamp->overflows * ( (double)timer_info->capture_compare + 1);
+
+    // @info: The first variable must be cast because the calculation can exceed 64 bits,
+    // the second cast removes the warning that accuracy could be lost with the cast
+    double overflow = ( (double)seconds_per_tick * (double)timestamp->overflows * ( (uint32_t)timer_info->capture_compare + 1));
+
     return overflow + counter;
 }
 
@@ -134,10 +133,12 @@ void software_timer_get_timespec(struct timespec * result_timespec, software_tim
 
 #endif
 
-    uint64_t seconds = time;
-    time = time - seconds;
+    uint64_t seconds = (uint64_t)time;
 
-    result_timespec->tv_sec = (time_t)(seconds);
+    // @info: It could lose precision with the cast
+    time = time - (double)seconds;
+
+    result_timespec->tv_sec = (time_t)seconds;
     result_timespec->tv_nsec = (long)(time * 1.0e09);
 
 #if false
@@ -185,7 +186,9 @@ software_timer_duration_flag_t software_timer_set_duration(software_timer_t * ob
 
     object->ticks_per_second = 1.0 / time_in_seconds;
 
-    double duration_overflows_dbl = ( time_in_seconds * timer_info->capture_compare_inverse ) *  ticks_per_second;
+    // @info: The first variable must be cast because the calculation can exceed 64 bits,
+    // the second and third cast removes the warning that accuracy could be lost with the cast
+    double duration_overflows_dbl = ( (double)time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
 
     if( UINT64_MAX < duration_overflows_dbl )
     {
@@ -197,9 +200,11 @@ software_timer_duration_flag_t software_timer_set_duration(software_timer_t * ob
     {
         duration_overflows = (uint64_t)duration_overflows_dbl;
 
+        // @info: The first variable must be cast because the calculation can exceed 64 bits,
+        // the second and third cast removes the warning that accuracy could be lost with the cast
         double duration_counter_dbl =
-            ( time_in_seconds * ticks_per_second ) -
-            ( duration_overflows * (( (uint32_t)timer_info->capture_compare) + 1));
+            ( (double)time_in_seconds * (double)ticks_per_second ) -
+            ( (double)duration_overflows * (( (uint32_t)timer_info->capture_compare) + 1));
 
         duration_counter = (uint16_t)duration_counter_dbl;
 
@@ -251,7 +256,7 @@ void software_timer_start (software_timer_t *object)
     }
 
     object->end_overflows = overflows;
-    object->end_counter = end_counter;
+    object->end_counter = (uint16_t)end_counter;
 }
 
 
@@ -340,7 +345,7 @@ bool software_timer_elapsed (software_timer_t *object)
 #endif
 
         object->end_overflows = end_overflows;
-        object->end_counter = end_counter;
+        object->end_counter = (uint16_t)end_counter;
 
         if(NULL != object->tick) { object->tick(object); }
 

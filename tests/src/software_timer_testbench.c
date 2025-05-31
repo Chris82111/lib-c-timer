@@ -41,11 +41,19 @@ typedef struct hardware_timer_s hardware_timer_t;
 
 typedef void (*hardware_timer_handler_t)(hardware_timer_t * object);
 
+//! Hardware timer
 typedef struct hardware_timer_s
 {
+    //! @brief Counter
     uint16_t counter;
-    uint16_t capture_compare; ///< Timer will hold the value for one cycle and next time its set to 0, So the value 0x0F will need 16 cycles
+
+    //! Timer will hold the value for one cycle and next time its set to 0, So the value 0x0F will need 16 cycles
+    uint16_t capture_compare;
+
+    //! @brief Capture Compare
     uint64_t overflows;
+
+    //! @brief Overflow event
     hardware_timer_handler_t overflow_event;
 }hardware_timer_t;
 
@@ -79,7 +87,7 @@ double hardware_timer_no(hardware_timer_t * timer)
 
 void hardware_timer_overflows_handler(hardware_timer_t * object)
 {
-    ;
+    if(NULL == object){ return; }
 }
 
 void hardware_timer_test(void)
