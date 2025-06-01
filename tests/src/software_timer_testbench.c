@@ -1852,17 +1852,10 @@ void software_timer_slow_checking()
     assert( true == ticked );
 
 
-    if(use_multiple_trigger_missed)
-    {
-        ticked = software_timer_elapsed(&timer_1);
-        assert( false == ticked );
-    }
-    else
-    {
-        ticked = software_timer_elapsed(&timer_1);
-        assert( true == ticked );
-    }
-
+    // ---- ---- ----
+    ticked = software_timer_elapsed(&timer_1);
+    assert( true == ticked );
+    // ---- ---- ----
 
 
     hardware_timer_increment(&hw_timer_1);
@@ -1880,6 +1873,103 @@ void software_timer_slow_checking()
     ticked = software_timer_elapsed(&timer_1);
     assert( false == ticked );
 }
+
+void software_timer_slow_checking_prevent_multiple_triggers()
+{
+    print_function_info(__func__);
+
+    hardware_timer_t hw_timer_1 =
+    {
+        .counter = 0,
+        .capture_compare = 0x0F,
+        .overflows = 0,
+        .overflow_event = NULL,
+    };
+
+    software_timer_timer_info_t sw_timer_1 =
+    {
+        .counter = &hw_timer_1.counter,
+        .overflows = &hw_timer_1.overflows,
+        .capture_compare = 15,
+        .prescaler = 4,
+        .ticks_per_second = 42500000,
+        .capture_compare_inverse = 1.0 / ( UINT32_C(1) + 15 )
+    };
+
+    software_timer_t timer_1 =
+    {
+        .end_counter = 5,
+        .end_overflows = 0,
+        .duration_counter = 5,
+        .duration_overflows = 0,
+
+        .time_in_seconds = 0.0,
+        .ticks_per_second = 0.2,
+
+        .timer_info = &sw_timer_1,
+
+        .tick = print_timer_info,
+    };
+
+    bool ticked;
+
+    // hardware_timer_increment(&hw_timer_1);
+    assert( 0 == hw_timer_1.counter && 0 == hw_timer_1.overflows);
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hw_timer_1.counter = 1; hw_timer_1.overflows = 0;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hw_timer_1.counter = 2; hw_timer_1.overflows = 0;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hw_timer_1.counter = 3; hw_timer_1.overflows = 0;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hw_timer_1.counter = 4; hw_timer_1.overflows = 0;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hw_timer_1.counter = 5; hw_timer_1.overflows = 0;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( true == ticked );
+
+
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+
+    hw_timer_1.counter = 2; hw_timer_1.overflows = 1;
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( true == ticked );
+
+
+    // ---- ---- ----
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+    // ---- ---- ----
+
+
+    hardware_timer_increment(&hw_timer_1);
+    assert( 3 == hw_timer_1.counter && 1 == hw_timer_1.overflows);
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+
+    hardware_timer_increment(&hw_timer_1);
+    assert( 4 == hw_timer_1.counter && 1 == hw_timer_1.overflows);
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( true == ticked );
+
+    hardware_timer_increment(&hw_timer_1);
+    assert( 5 == hw_timer_1.counter && 1 == hw_timer_1.overflows);
+    ticked = software_timer_elapsed_prevent_multiple_triggers(&timer_1);
+    assert( false == ticked );
+}
+
 
 #endif
 
@@ -1923,6 +2013,7 @@ bool software_timer_test(void)
     software_timer_test_greater_than_capture_compare();
     software_timer_late_interrupt();
     software_timer_slow_checking();
+    software_timer_slow_checking_prevent_multiple_triggers();
 
     return true;
 }

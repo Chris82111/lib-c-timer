@@ -1,3 +1,7 @@
+//! @file
+//! @brief The software_timer source file.
+
+
 /*---------------------------------------------------------------------*
  *  private: include files
  *---------------------------------------------------------------------*/
@@ -19,18 +23,6 @@
 /*---------------------------------------------------------------------*
  *  public:  variables
  *---------------------------------------------------------------------*/
-
-#if USE_MULTIPLE_TRIGGERS_MISSED
-
-bool use_multiple_trigger_missed = true;
-
-#else
-
-bool use_multiple_trigger_missed = false;
-
-#endif
-
-
 /*---------------------------------------------------------------------*
  *  private: function prototypes
  *---------------------------------------------------------------------*/
@@ -41,7 +33,7 @@ bool use_multiple_trigger_missed = false;
  *  public:  functions
  *---------------------------------------------------------------------*/
 
-void software_timer_init_halt(software_timer_t * object, software_timer_timer_info_t * timer_info)
+void software_timer_init_halt (software_timer_t * object, software_timer_timer_info_t * timer_info)
 {
     object->end_counter = 0;
     object->end_overflows = UINT64_MAX;
@@ -53,17 +45,17 @@ void software_timer_init_halt(software_timer_t * object, software_timer_timer_in
     object->tick = 0;
 }
 
-bool software_timer_is_stopped(software_timer_t * object)
+bool software_timer_is_stopped (software_timer_t * object)
 {
     return UINT64_MAX == object->end_overflows;
 }
 
-bool software_timer_is_running(software_timer_t * object)
+bool software_timer_is_running (software_timer_t * object)
 {
     return UINT64_MAX != object->end_overflows;
 }
 
-void software_timer_get_timestamp(software_timer_t * object, software_timer_timestamp_t * timestamp)
+void software_timer_get_timestamp (software_timer_t * object, software_timer_timestamp_t * timestamp)
 {
     software_timer_timer_info_t * timer_info = object->timer_info;
     volatile uint64_t * overflows_ptr = timer_info->overflows;
@@ -85,7 +77,7 @@ void software_timer_get_timestamp(software_timer_t * object, software_timer_time
     timestamp->timer_info = timer_info;
 }
 
-void software_timer_sub_timestamp(software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend)
+void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend)
 {
     int32_t counter = result_and_minuend->counter;
     uint64_t overflows = result_and_minuend->overflows;
@@ -102,7 +94,7 @@ void software_timer_sub_timestamp(software_timer_timestamp_t * result_and_minuen
     result_and_minuend->overflows = overflows;
 }
 
-double software_timer_get_time(software_timer_timestamp_t * timestamp)
+double software_timer_get_time (software_timer_timestamp_t * timestamp)
 {
     software_timer_timer_info_t * timer_info = timestamp->timer_info;
 
@@ -116,7 +108,7 @@ double software_timer_get_time(software_timer_timestamp_t * timestamp)
     return overflow + counter;
 }
 
-void software_timer_get_timespec(struct timespec * result_timespec, software_timer_timestamp_t * timestamp)
+void software_timer_get_timespec (struct timespec * result_timespec, software_timer_timestamp_t * timestamp)
 {
     double time = software_timer_get_time(timestamp);
 
@@ -172,7 +164,7 @@ void software_timer_get_timespec(struct timespec * result_timespec, software_tim
 #endif
 }
 
-software_timer_duration_flag_t software_timer_set_duration(software_timer_t * object, double time_in_seconds)
+software_timer_duration_flag_t software_timer_set_duration (software_timer_t * object, double time_in_seconds)
 {
     uint16_t duration_counter;
     uint64_t duration_overflows;
@@ -318,21 +310,78 @@ bool software_timer_elapsed (software_timer_t *object)
             end_counter -= capture_compare;
         }
 
+        // ---- ---- ---- ----
 
-#ifdef MULTIPLE_TRIGGERS_MISSED
+        object->end_overflows = end_overflows;
+        object->end_counter = (uint16_t)end_counter;
+
+        if(NULL != object->tick) { object->tick(object); }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
+{
+    software_timer_timer_info_t * timer_info = object->timer_info;
+    volatile uint64_t * overflows_ptr = timer_info->overflows;
+    volatile uint16_t * counter_ptr = timer_info->counter;
+
+#if true
+
+    uint64_t overflows = *overflows_ptr;
+    uint16_t counter = *counter_ptr;
+
+#else
+
+    uint16_t counter_a = *counter_ptr;
+    uint64_t overflows = *overflows_ptr;
+    uint16_t counter = *counter_ptr;
+
+    if(counter < counter_a)
+    {
+        overflows = *overflows_ptr;
+    }
+
+#endif
+
+    uint64_t end_overflows = object->end_overflows;
+    uint32_t end_counter = object->end_counter;
+
+    if(((counter >= end_counter) && (overflows == end_overflows)) || (overflows > end_overflows))
+    {
+        uint16_t duration_counter = object->duration_counter;
+        uint64_t duration_overflows = object->duration_overflows;
+
+        end_counter += duration_counter;
+        end_overflows += duration_overflows;
+
+        uint32_t capture_compare = UINT32_C(1) + timer_info->capture_compare;
+
+        if( capture_compare <= end_counter )
+        {
+            end_overflows += 1;
+            end_counter -= capture_compare;
+        }
+
+        // ---- ---- ---- ----
 
         if(((counter >= end_counter) && (overflows == end_overflows)) || (overflows > end_overflows))
         {
-            double duration_current = ((double)capture_compare) * (overflows - end_overflows) + ((double)counter - end_counter);
-            double duration = ((double)capture_compare) * duration_overflows + duration_counter;
+            double duration_current = ((double)capture_compare) * (double)(overflows - end_overflows) + ((double)counter - (double)end_counter);
+            double duration = (double)capture_compare * (double)duration_overflows + duration_counter;
 
             if(0 != duration)
             {
                 double duration_target = ceil(duration_current * object->ticks_per_second) * duration;
-                uint64_t duration_target_per_CC = duration_target * timer_info->capture_compare_inverse;
+                uint64_t duration_target_per_CC = (uint64_t)(duration_target * timer_info->capture_compare_inverse);
 
                 end_overflows = duration_target_per_CC + end_overflows;
-                end_counter = (uint16_t)(duration_target - (duration_target_per_CC * ((double)capture_compare))) + end_counter;
+                end_counter = (uint16_t)(duration_target - ((double)duration_target_per_CC * (double)capture_compare)) + end_counter;
 
                 if( capture_compare <= end_counter )
                 {
@@ -342,7 +391,7 @@ bool software_timer_elapsed (software_timer_t *object)
             }
         }
 
-#endif
+        // ---- ---- ---- ----
 
         object->end_overflows = end_overflows;
         object->end_counter = (uint16_t)end_counter;
