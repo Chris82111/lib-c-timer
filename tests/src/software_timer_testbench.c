@@ -90,58 +90,6 @@ void hardware_timer_overflows_handler(hardware_timer_t * object)
     if(NULL == object){ return; }
 }
 
-void hardware_timer_test(void)
-{
-    hardware_timer_t timer = {
-        .counter = 0,
-        .capture_compare = 0x0F,
-        .overflows = 0,
-        .overflow_event = hardware_timer_overflows_handler,
-    };
-
-    printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
-        timer.counter,
-        timer.overflows,
-        hardware_timer_no(&timer));
-
-    fflush(stdout);
-
-    for(int i = 0; i < 35; i++)
-    {
-        hardware_timer_increment(&timer);
-
-        printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
-            timer.counter,
-            timer.overflows,
-            hardware_timer_no(&timer));
-
-        fflush(stdout);
-    }
-
-    timer.counter = 0;
-    timer.overflows = 0;
-    timer.capture_compare = 0x05;
-
-    printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
-        timer.counter,
-        timer.overflows,
-        hardware_timer_no(&timer));
-
-    fflush(stdout);
-
-    for(int i = 0; i < 35; i++)
-    {
-        hardware_timer_increment(&timer);
-
-        printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
-            timer.counter,
-            timer.overflows,
-            hardware_timer_no(&timer));
-
-        fflush(stdout);
-    }
-}
-
 
 void print_timer_info(software_timer_t * object)
 {
@@ -194,7 +142,7 @@ void software_timer_test_get_timestamp()
     };
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
-    timer_1.tick = print_timer_info;
+    timer_1.on_tick = print_timer_info;
 
     hw_timer_1.counter = 10;
     hw_timer_1.overflows = 100;
@@ -241,7 +189,7 @@ void software_timer_test_set_duration_16bit()
     };
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
-    timer_1.tick = print_timer_info;
+    timer_1.on_tick = print_timer_info;
 
     software_timer_duration_flag_t flag;
 
@@ -363,7 +311,7 @@ void software_timer_test_set_duration_4bit()
     };
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
-    timer_1.tick = print_timer_info;
+    timer_1.on_tick = print_timer_info;
 
     flag = software_timer_calculate_and_set_duration(&timer_1, 117.64705882352941176470588235294e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
@@ -396,7 +344,7 @@ void software_timer_test_set_duration_inline()
     };
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
-    timer_1.tick = print_timer_info;
+    timer_1.on_tick = print_timer_info;
 
     software_timer_duration_t duration =
     {
@@ -706,7 +654,7 @@ void software_timer_test_init_halt()
     timer_1.duration_counter = 4;
     timer_1.duration_overflows = 0;
     timer_1.end_counter = 2;
-    timer_1.tick = print_timer_info;
+    timer_1.on_tick = print_timer_info;
 
     bool ticked;
 
@@ -756,7 +704,7 @@ void software_timer_duration0()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -806,7 +754,7 @@ void software_timer_with_null_tick_handler()
         .ticks_per_second = 0.0,
 
         .timer_info = &sw_timer_1,
-        .tick = NULL,
+        .on_tick = NULL,
     };
 
     bool ticked;
@@ -858,7 +806,7 @@ void software_timer_test_stop()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1008,7 +956,7 @@ void software_timer_test_start()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1172,7 +1120,7 @@ void software_timer_start2()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1365,7 +1313,7 @@ void software_timer_test_match_capture_compare()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1514,7 +1462,7 @@ void software_timer_test_greater_than_capture_compare()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1688,7 +1636,7 @@ void software_timer_late_interrupt()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1820,7 +1768,7 @@ void software_timer_slow_checking()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1916,7 +1864,7 @@ void software_timer_slow_checking_prevent_multiple_triggers()
 
         .timer_info = &sw_timer_1,
 
-        .tick = print_timer_info,
+        .on_tick = print_timer_info,
     };
 
     bool ticked;
@@ -1979,19 +1927,120 @@ void software_timer_slow_checking_prevent_multiple_triggers()
 }
 
 
+
+
 #endif
+
+
+void software_timer_run_example_1_ticked(software_timer_t * object)
+{
+    software_timer_timestamp_t timestamp;
+    software_timer.GetTimestamp(object, &timestamp);
+    printf("Ticked at: %lf" " seconds\n", software_timer.GetTime(&timestamp) );
+    fflush(stdout);
+}
+
+volatile uint16_t counter = 0; // Example, replace with hardware address
+volatile uint64_t overflows = 0;
+
+software_timer_timer_info_t timer_info_1 =
+{
+    .counter = &counter,
+    .overflows = &overflows,
+    .capture_compare = 65535,
+    .prescaler = 4,
+    .ticks_per_second = UINT64_C(42500000),
+    .seconds_per_tick = 1.0 / 42500000.0,
+    .capture_compare_inverse = 1.0 / (65535.0 + 1.0),
+};
+
+software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&timer_info_1);
+
+void software_timer_run_example_1()
+{
+    double timer_in_seconds = 1.5e-3;
+    software_timer.CalculateAndSetDuration(&timer_1, timer_in_seconds);
+
+    timer_1.on_tick = software_timer_run_example_1_ticked;
+
+    if(software_timer.IsStopped(&timer_1))
+    {
+        software_timer.Start(&timer_1);
+    }
+
+    while(1)
+    {
+        if(software_timer.Elapsed(&timer_1))
+        {
+            software_timer.Stop(&timer_1);
+
+            return; // finish example
+        }
+
+        // Example, when the following value is reached, 1.5 ms have elapsed:
+        counter = 63750 + 1;
+        overflows = 0;
+
+        /* other code */
+    }
+}
 
 
 /*---------------------------------------------------------------------*
  *  public:  functions
  *---------------------------------------------------------------------*/
 
-void timer_ticked(software_timer_t * object)
+
+void hardware_timer_test(void)
 {
-    software_timer_timestamp_t timestamp;
-    software_timer_get_timestamp(object, &timestamp);
-    printf("Ticked at: %lf" " seconds\n", software_timer_get_time(&timestamp) );
+    hardware_timer_t timer = {
+        .counter = 0,
+        .capture_compare = 0x0F,
+        .overflows = 0,
+        .overflow_event = hardware_timer_overflows_handler,
+    };
+
+    printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
+        timer.counter,
+        timer.overflows,
+        hardware_timer_no(&timer));
+
     fflush(stdout);
+
+    for(int i = 0; i < 35; i++)
+    {
+        hardware_timer_increment(&timer);
+
+        printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
+            timer.counter,
+            timer.overflows,
+            hardware_timer_no(&timer));
+
+        fflush(stdout);
+    }
+
+    timer.counter = 0;
+    timer.overflows = 0;
+    timer.capture_compare = 0x05;
+
+    printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
+        timer.counter,
+        timer.overflows,
+        hardware_timer_no(&timer));
+
+    fflush(stdout);
+
+    for(int i = 0; i < 35; i++)
+    {
+        hardware_timer_increment(&timer);
+
+        printf("counter: %5" PRIu16 ", overflows: %5" PRIu64 ", No: %5f\n",
+            timer.counter,
+            timer.overflows,
+            hardware_timer_no(&timer));
+
+        fflush(stdout);
+    }
 }
 
 bool software_timer_test(void)
@@ -2022,6 +2071,8 @@ bool software_timer_test(void)
     software_timer_late_interrupt();
     software_timer_slow_checking();
     software_timer_slow_checking_prevent_multiple_triggers();
+
+    software_timer_run_example_1();
 
     return true;
 }

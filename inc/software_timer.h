@@ -188,7 +188,7 @@ typedef struct software_timer_s
     const software_timer_timer_info_t * timer_info;
 
     //! @brief Function that is called after the timer has expired, `NULL` is allowed
-    software_timer_handler_t tick;
+    software_timer_handler_t on_tick;
 
 }software_timer_t;
 
@@ -209,10 +209,40 @@ typedef struct software_timer_duration_s
     uint64_t duration_overflows;
 }software_timer_duration_t;
 
+//! @brief Represents a simplified form of a class
+//! @details The global variable ::software_timer can be used to easily access all matching
+//! functions with auto-completion.
+struct software_timer_sc
+{
+    software_timer_duration_flag_t (*CalculateAndSetDuration) (software_timer_t * object, double time_in_seconds);
+    software_timer_duration_flag_t (*CalculateDuration) (const software_timer_timer_info_t * const timer_info, double time_in_seconds, software_timer_duration_t * duration);
+    bool (*Elapsed) (software_timer_t *object);
+    bool (*ElapsedPreventMultipleTriggers) (software_timer_t *object);
+    void (*GetDuration) (const software_timer_t * object, software_timer_duration_t * duration);
+    double (*GetTime) (const software_timer_timestamp_t * timestamp);
+    void (*GetTimespec) (const software_timer_timestamp_t * timestamp, struct timespec * result_timespec);
+    void (*GetTimestamp) (const software_timer_t * object, software_timer_timestamp_t * timestamp);
+    void (*InitHalt) (software_timer_t * object, const software_timer_timer_info_t * const timer_info);
+    bool (*IsRunning) (const software_timer_t * object);
+    bool (*IsStopped) (const software_timer_t * object);
+    void (*SetDuration) (software_timer_t * object, const software_timer_duration_t * duration);
+    void (*Start) (software_timer_t *object);
+    void (*Stop) (software_timer_t *object);
+    void (*SubTimestamp) (software_timer_timestamp_t * result_and_minuend, const software_timer_timestamp_t * subtrahend);
+};
+
 
 /*---------------------------------------------------------------------*
  *  public: extern variables
  *---------------------------------------------------------------------*/
+
+//! @brief To access all member functions working with type ::software_timer_s
+//! @details Allows a simplified class to easily access all member functions
+//! working with type ::software_timer_s. The auto-completion function helps you to select all
+//! suitable functions via ::software_timer_sc struct.
+extern const struct software_timer_sc software_timer;
+
+
 /*---------------------------------------------------------------------*
  *  public: function prototypes
  *---------------------------------------------------------------------*/

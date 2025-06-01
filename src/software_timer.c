@@ -23,6 +23,28 @@
 /*---------------------------------------------------------------------*
  *  public:  variables
  *---------------------------------------------------------------------*/
+
+const struct software_timer_sc software_timer =
+{
+    software_timer_calculate_and_set_duration,
+    software_timer_calculate_duration,
+    software_timer_elapsed,
+    software_timer_elapsed_prevent_multiple_triggers,
+    software_timer_get_duration,
+    software_timer_get_time,
+    software_timer_get_timespec,
+    software_timer_get_timestamp,
+    software_timer_init_halt,
+    software_timer_is_running,
+    software_timer_is_stopped,
+    software_timer_set_duration,
+    software_timer_start,
+    software_timer_stop,
+    software_timer_sub_timestamp,
+
+};
+
+
 /*---------------------------------------------------------------------*
  *  private: function prototypes
  *---------------------------------------------------------------------*/
@@ -152,7 +174,7 @@ bool software_timer_elapsed (software_timer_t *object)
         object->end_overflows = end_overflows;
         object->end_counter = (uint16_t)end_counter;
 
-        if(NULL != object->tick) { object->tick(object); }
+        if(NULL != object->on_tick) { object->on_tick(object); }
 
         return true;
     }
@@ -233,7 +255,7 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
         object->end_overflows = end_overflows;
         object->end_counter = (uint16_t)end_counter;
 
-        if(NULL != object->tick) { object->tick(object); }
+        if(NULL != object->on_tick) { object->on_tick(object); }
 
         return true;
     }
@@ -352,7 +374,7 @@ void software_timer_init_halt (software_timer_t * object, const software_timer_t
     object->time_in_seconds = 0;
     object->ticks_per_second = 0;
     object->timer_info = timer_info;
-    object->tick = NULL;
+    object->on_tick = NULL;
 }
 
 bool software_timer_is_running (const software_timer_t * object)
