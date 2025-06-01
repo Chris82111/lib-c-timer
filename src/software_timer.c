@@ -33,6 +33,60 @@
  *  public:  functions
  *---------------------------------------------------------------------*/
 
+software_timer_duration_flag_t software_timer_calculate_and_set_duration (software_timer_t * object, double time_in_seconds)
+{
+    uint16_t duration_counter;
+    uint64_t duration_overflows;
+
+    software_timer_timer_info_t * timer_info = object->timer_info;
+    uint64_t ticks_per_second = timer_info->ticks_per_second;
+
+    software_timer_duration_flag_t state = SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS;
+
+    object->time_in_seconds = time_in_seconds;
+
+    object->ticks_per_second = 1.0 / time_in_seconds;
+
+    // @info: The first variable must be cast because the calculation can exceed 64 bits,
+    // the second and third cast removes the warning that accuracy could be lost with the cast
+    double duration_overflows_dbl = ( (double)time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
+
+    if( UINT64_MAX < duration_overflows_dbl )
+    {
+        state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX);
+        duration_overflows = UINT64_MAX;
+        duration_counter = UINT16_MAX;
+    }
+    else
+    {
+        duration_overflows = (uint64_t)duration_overflows_dbl;
+
+        // @info: The first variable must be cast because the calculation can exceed 64 bits,
+        // the second and third cast removes the warning that accuracy could be lost with the cast
+        double duration_counter_dbl =
+            ( (double)time_in_seconds * (double)ticks_per_second ) -
+            ( (double)duration_overflows * (( (uint32_t)timer_info->capture_compare) + 1));
+
+        duration_counter = (uint16_t)duration_counter_dbl;
+
+        if(0 == duration_counter && 0 == duration_overflows)
+        {
+            state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE);
+        }
+
+        if(duration_counter_dbl > duration_counter)
+        {
+            ++duration_counter;
+            state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER);
+        }
+    }
+
+    object->duration_overflows = duration_overflows;
+    object->duration_counter = duration_counter;
+
+    return (software_timer_duration_flag_t)state;
+}
+
 bool software_timer_elapsed (software_timer_t *object)
 {
     software_timer_timer_info_t * timer_info = object->timer_info;
@@ -294,60 +348,6 @@ bool software_timer_is_running (software_timer_t * object)
 bool software_timer_is_stopped (software_timer_t * object)
 {
     return UINT64_MAX == object->end_overflows;
-}
-
-software_timer_duration_flag_t software_timer_set_duration (software_timer_t * object, double time_in_seconds)
-{
-    uint16_t duration_counter;
-    uint64_t duration_overflows;
-
-    software_timer_timer_info_t * timer_info = object->timer_info;
-    uint64_t ticks_per_second = timer_info->ticks_per_second;
-
-    software_timer_duration_flag_t state = SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS;
-
-    object->time_in_seconds = time_in_seconds;
-
-    object->ticks_per_second = 1.0 / time_in_seconds;
-
-    // @info: The first variable must be cast because the calculation can exceed 64 bits,
-    // the second and third cast removes the warning that accuracy could be lost with the cast
-    double duration_overflows_dbl = ( (double)time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
-
-    if( UINT64_MAX < duration_overflows_dbl )
-    {
-        state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX);
-        duration_overflows = UINT64_MAX;
-        duration_counter = UINT16_MAX;
-    }
-    else
-    {
-        duration_overflows = (uint64_t)duration_overflows_dbl;
-
-        // @info: The first variable must be cast because the calculation can exceed 64 bits,
-        // the second and third cast removes the warning that accuracy could be lost with the cast
-        double duration_counter_dbl =
-            ( (double)time_in_seconds * (double)ticks_per_second ) -
-            ( (double)duration_overflows * (( (uint32_t)timer_info->capture_compare) + 1));
-
-        duration_counter = (uint16_t)duration_counter_dbl;
-
-        if(0 == duration_counter && 0 == duration_overflows)
-        {
-            state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE);
-        }
-
-        if(duration_counter_dbl > duration_counter)
-        {
-            ++duration_counter;
-            state = (software_timer_duration_flag_t) (state | SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER);
-        }
-    }
-
-    object->duration_overflows = duration_overflows;
-    object->duration_counter = duration_counter;
-
-    return (software_timer_duration_flag_t)state;
 }
 
 void software_timer_start (software_timer_t *object)

@@ -201,6 +201,13 @@ typedef struct software_timer_s
  *  public: function prototypes
  *---------------------------------------------------------------------*/
 
+//! @brief Sets the duration of the specified timer object according to the specified time
+//!
+//! @param[in,out] object The software timer object
+//! @param time_in_seconds The time after which the timer expires
+//! @return Returns the flags with information about the calculated duration
+software_timer_duration_flag_t software_timer_calculate_and_set_duration (software_timer_t * object, double time_in_seconds);
+
 //! @brief  Checks if the timer is elapsed
 //!
 //! @details The handler assigned to the function pointer ::software_timer_t::tick is called.
@@ -271,13 +278,6 @@ bool software_timer_is_running (software_timer_t * object);
 //! @retval true  when the timer is stopped
 //! @retval false if the timer is running
 bool software_timer_is_stopped (software_timer_t * object);
-
-//! @brief Sets the duration of the specified timer object according to the specified time
-//!
-//! @param[in,out] object The software timer object
-//! @param time_in_seconds The time after which the timer expires
-//! @return Returns the flags with information about the calculated duration
-software_timer_duration_flag_t software_timer_set_duration(software_timer_t * object, double time_in_seconds);
 
 //! @brief Starts the timer
 //!
