@@ -503,7 +503,7 @@ void software_timer_test_get_timespec()
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert(  0 == timspec_value.tv_sec );
     assert( 23 == timspec_value.tv_nsec );
 
@@ -512,7 +512,7 @@ void software_timer_test_get_timespec()
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert(   0 == timspec_value.tv_sec );
     assert( 400 == timspec_value.tv_nsec );
 
@@ -522,7 +522,7 @@ void software_timer_test_get_timespec()
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert( 9876543210 == timspec_value.tv_sec );
     assert(  123456954 == timspec_value.tv_nsec );
 
@@ -531,7 +531,7 @@ void software_timer_test_get_timespec()
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert( 9876543211 == timspec_value.tv_sec );
     assert(       1907 == timspec_value.tv_nsec );
 
@@ -541,7 +541,7 @@ void software_timer_test_get_timespec()
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert(                  0  == timspec_value.tv_sec );
     assert( UINT64_C(123456799) == timspec_value.tv_nsec );
 
@@ -580,7 +580,7 @@ void software_timer_test_get_timespec_max()
     hw_timer_1.overflows = UINT64_MAX;
 
     software_timer_get_timestamp(&timer_1, &timestamp);
-    software_timer_get_timespec(&timspec_value, &timestamp);
+    software_timer_get_timespec(&timestamp, &timspec_value);
     assert(                  0  == timspec_value.tv_sec );
     assert( UINT64_C(123456799) == timspec_value.tv_nsec );
 

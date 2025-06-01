@@ -41,7 +41,7 @@ software_timer_duration_flag_t software_timer_calculate_and_set_duration (softwa
     return flag;
 }
 
-software_timer_duration_flag_t software_timer_calculate_duration (software_timer_timer_info_t * timer_info, double time_in_seconds, software_timer_duration_t * duration)
+software_timer_duration_flag_t software_timer_calculate_duration (const software_timer_timer_info_t * const timer_info, double time_in_seconds, software_timer_duration_t * duration)
 {
     uint16_t duration_counter;
     uint64_t duration_overflows;
@@ -96,7 +96,7 @@ software_timer_duration_flag_t software_timer_calculate_duration (software_timer
 
 bool software_timer_elapsed (software_timer_t *object)
 {
-    software_timer_timer_info_t * timer_info = object->timer_info;
+    const software_timer_timer_info_t * const timer_info = object->timer_info;
     volatile uint64_t * overflows_ptr = timer_info->overflows;
     volatile uint16_t * counter_ptr = timer_info->counter;
 
@@ -164,7 +164,7 @@ bool software_timer_elapsed (software_timer_t *object)
 
 bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
 {
-    software_timer_timer_info_t * timer_info = object->timer_info;
+    const software_timer_timer_info_t * const timer_info = object->timer_info;
     volatile uint64_t * overflows_ptr = timer_info->overflows;
     volatile uint16_t * counter_ptr = timer_info->counter;
 
@@ -243,7 +243,7 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
     }
 }
 
-void software_timer_get_duration (software_timer_t * object, software_timer_duration_t * duration)
+void software_timer_get_duration (const software_timer_t * object, software_timer_duration_t * duration)
 {
     duration->time_in_seconds = object->time_in_seconds;
     duration->ticks_per_second = object->ticks_per_second;
@@ -251,9 +251,9 @@ void software_timer_get_duration (software_timer_t * object, software_timer_dura
     duration->duration_overflows = object->duration_overflows;
 }
 
-double software_timer_get_time (software_timer_timestamp_t * timestamp)
+double software_timer_get_time (const software_timer_timestamp_t * timestamp)
 {
-    software_timer_timer_info_t * timer_info = timestamp->timer_info;
+    const software_timer_timer_info_t * const timer_info = timestamp->timer_info;
 
     double seconds_per_tick = timer_info->seconds_per_tick;
     double counter = seconds_per_tick * timestamp->counter;
@@ -265,7 +265,7 @@ double software_timer_get_time (software_timer_timestamp_t * timestamp)
     return overflow + counter;
 }
 
-void software_timer_get_timespec (struct timespec * result_timespec, software_timer_timestamp_t * timestamp)
+void software_timer_get_timespec (const software_timer_timestamp_t * timestamp, struct timespec * result_timespec)
 {
     double time = software_timer_get_time(timestamp);
 
@@ -321,9 +321,9 @@ void software_timer_get_timespec (struct timespec * result_timespec, software_ti
 #endif
 }
 
-void software_timer_get_timestamp (software_timer_t * object, software_timer_timestamp_t * timestamp)
+void software_timer_get_timestamp (const software_timer_t * object, software_timer_timestamp_t * timestamp)
 {
-    software_timer_timer_info_t * timer_info = object->timer_info;
+    const software_timer_timer_info_t * const timer_info = object->timer_info;
     volatile uint64_t * overflows_ptr = timer_info->overflows;
     volatile uint16_t * counter_ptr = timer_info->counter;
 
@@ -343,7 +343,7 @@ void software_timer_get_timestamp (software_timer_t * object, software_timer_tim
     timestamp->timer_info = timer_info;
 }
 
-void software_timer_init_halt (software_timer_t * object, software_timer_timer_info_t * timer_info)
+void software_timer_init_halt (software_timer_t * object, const software_timer_timer_info_t * const timer_info)
 {
     object->end_counter = 0;
     object->end_overflows = UINT64_MAX;
@@ -355,17 +355,17 @@ void software_timer_init_halt (software_timer_t * object, software_timer_timer_i
     object->tick = NULL;
 }
 
-bool software_timer_is_running (software_timer_t * object)
+bool software_timer_is_running (const software_timer_t * object)
 {
     return UINT64_MAX != object->end_overflows;
 }
 
-bool software_timer_is_stopped (software_timer_t * object)
+bool software_timer_is_stopped (const software_timer_t * object)
 {
     return UINT64_MAX == object->end_overflows;
 }
 
-void software_timer_set_duration (software_timer_t * object, software_timer_duration_t * duration)
+void software_timer_set_duration (software_timer_t * object, const software_timer_duration_t * duration)
 {
     object->time_in_seconds = duration->time_in_seconds;
     object->ticks_per_second = duration->ticks_per_second;
@@ -375,7 +375,7 @@ void software_timer_set_duration (software_timer_t * object, software_timer_dura
 
 void software_timer_start (software_timer_t *object)
 {
-    software_timer_timer_info_t * timer_info = object->timer_info;
+    const software_timer_timer_info_t * const timer_info = object->timer_info;
     volatile uint64_t * overflows_ptr = timer_info->overflows;
     volatile uint16_t * counter_ptr = timer_info->counter;
 
@@ -410,7 +410,7 @@ void software_timer_stop (software_timer_t *object)
     object->end_overflows = UINT64_MAX;
 }
 
-void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend)
+void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, const software_timer_timestamp_t * subtrahend)
 {
     int32_t counter = result_and_minuend->counter;
     uint64_t overflows = result_and_minuend->overflows;

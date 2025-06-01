@@ -156,7 +156,7 @@ typedef struct software_timer_timestamp_s
     uint64_t overflows;
 
     //! @brief Pointer to the data of the hardware timer
-    software_timer_timer_info_t * timer_info;
+    const software_timer_timer_info_t * timer_info;
 
 } software_timer_timestamp_t;
 
@@ -185,7 +185,7 @@ typedef struct software_timer_s
     double ticks_per_second;
 
     //! @brief Pointer to the data of the hardware timer
-    software_timer_timer_info_t * timer_info;
+    const software_timer_timer_info_t * timer_info;
 
     //! @brief Function that is called after the timer has expired, `NULL` is allowed
     software_timer_handler_t tick;
@@ -226,11 +226,11 @@ software_timer_duration_flag_t software_timer_calculate_and_set_duration (softwa
 
 //! @brief Calculates the duration of the specified timer object according to the specified time
 //!
-//! @param[in,out] timer_info Pointer to the data of the hardware timer
+//! @param[in] timer_info Pointer to the data of the hardware timer
 //! @param time_in_seconds The time after which the timer expires
 //! @param[out] duration Duration data based on the hardware timer used and the specified time
 //! @return Returns the flags with information about the calculated duration
-software_timer_duration_flag_t software_timer_calculate_duration (software_timer_timer_info_t * timer_info, double time_in_seconds, software_timer_duration_t * duration);
+software_timer_duration_flag_t software_timer_calculate_duration (const software_timer_timer_info_t * const timer_info, double time_in_seconds, software_timer_duration_t * duration);
 
 //! @brief  Checks if the timer is elapsed
 //!
@@ -267,53 +267,53 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
 
 //! @brief Gets the duration data of the software timer object
 //!
-//! @param[in,out] object The software timer object
+//! @param[in] object The software timer object
 //! @param[out] duration Duration data based on the hardware timer used and the specified time
-void software_timer_get_duration (software_timer_t * object, software_timer_duration_t * duration);
+void software_timer_get_duration (const software_timer_t * object, software_timer_duration_t * duration);
 
 //! @brief Converts the timestamp value into a seconds value
 //!
-//! @param[in,out] timestamp Pointer to the timer values
+//! @param[in] timestamp Pointer to the timer values
 //! @return Returns the time in seconds
-double software_timer_get_time (software_timer_timestamp_t * timestamp);
+double software_timer_get_time (const software_timer_timestamp_t * timestamp);
 
 //! @brief Converts the timestamp to the standard structure timespec
 //!
-//! @param[out] result_timespec Standard ::timespec struct.
 //! @param[in] timestamp of the software timer.
-void software_timer_get_timespec (struct timespec * result_timespec, software_timer_timestamp_t * timestamp);
+//! @param[out] result_timespec Standard ::timespec struct.
+void software_timer_get_timespec (const software_timer_timestamp_t * timestamp, struct timespec * result_timespec);
 
 //! @brief Reads the current values of the underlying timer
 //!
-//! @param[in,out] object The software timer object
+//! @param[in] object The software timer object
 //! @param[out] timestamp Pointer to the structure in which the values are to be saved
-void software_timer_get_timestamp (software_timer_t * object, software_timer_timestamp_t * timestamp);
+void software_timer_get_timestamp (const software_timer_t * object, software_timer_timestamp_t * timestamp);
 
 //! @brief Initializes the timer, normally it is better to use ::SOFTWARE_TIMER_INIT_HALT()
 //!
 //! @param[out] object The software timer object
 //! @param[in] timer_info Address of the underlying hardware timer
-void software_timer_init_halt (software_timer_t * object, software_timer_timer_info_t * timer_info);
+void software_timer_init_halt (software_timer_t * object, const software_timer_timer_info_t * const timer_info);
 
 //! @brief Checks if the timer is running
 //!
 //! @param[in] object The software timer object
 //! @retval true  when the timer is running
 //! @retval false if the timer is stopped
-bool software_timer_is_running (software_timer_t * object);
+bool software_timer_is_running (const software_timer_t * object);
 
 //! @brief Checks if the timer is stopped
 //!
 //! @param[in] object The software timer object
 //! @retval true  when the timer is stopped
 //! @retval false if the timer is running
-bool software_timer_is_stopped (software_timer_t * object);
+bool software_timer_is_stopped (const software_timer_t * object);
 
 //! @brief Sets the duration data of the software timer object
 //!
 //! @param[in,out] object The software timer object
 //! @param[in] duration Duration data based on the hardware timer used and the specified time
-void software_timer_set_duration (software_timer_t * object, software_timer_duration_t * duration);
+void software_timer_set_duration (software_timer_t * object, const software_timer_duration_t * duration);
 
 //! @brief Starts the timer
 //!
@@ -329,7 +329,7 @@ void software_timer_stop (software_timer_t *object);
 //!
 //! @param[in,out] result_and_minuend Minuend
 //! @param[in] subtrahend Subtrahend
-void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend);
+void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, const software_timer_timestamp_t * subtrahend);
 
 
 /*---------------------------------------------------------------------*
