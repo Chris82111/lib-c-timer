@@ -201,67 +201,6 @@ typedef struct software_timer_s
  *  public: function prototypes
  *---------------------------------------------------------------------*/
 
-//! @brief Initializes the timer, normally it is better to use ::SOFTWARE_TIMER_INIT_HALT()
-//!
-//! @param[out] object The software timer object
-//! @param[in] timer_info Address of the underlying hardware timer
-void software_timer_init_halt (software_timer_t * object, software_timer_timer_info_t * timer_info);
-
-//! @brief Checks if the timer is stopped
-//!
-//! @param[in] object The software timer object
-//! @retval true  when the timer is stopped
-//! @retval false if the timer is running
-bool software_timer_is_stopped (software_timer_t * object);
-
-//! @brief Checks if the timer is running
-//!
-//! @param[in] object The software timer object
-//! @retval true  when the timer is running
-//! @retval false if the timer is stopped
-bool software_timer_is_running (software_timer_t * object);
-
-//! @brief Reads the current values of the underlying timer
-//!
-//! @param[in,out] object The software timer object
-//! @param[out] timestamp Pointer to the structure in which the values are to be saved
-void software_timer_get_timestamp (software_timer_t * object, software_timer_timestamp_t * timestamp);
-
-//! @brief Calculates `result_and_minuend = result_and_minuend - subtrahend`
-//!
-//! @param[in,out] result_and_minuend Minuend
-//! @param[in] subtrahend Subtrahend
-void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend);
-
-//! @brief Converts the timestamp value into a seconds value
-//!
-//! @param[in,out] timestamp Pointer to the timer values
-//! @return Returns the time in seconds
-double software_timer_get_time (software_timer_timestamp_t * timestamp);
-
-//! @brief Converts the timestamp to the standard structure timespec
-//!
-//! @param[out] result_timespec Standard ::timespec struct.
-//! @param[in] timestamp of the software timer.
-void software_timer_get_timespec (struct timespec * result_timespec, software_timer_timestamp_t * timestamp);
-
-//! @brief Sets the duration of the specified timer object according to the specified time
-//!
-//! @param[in,out] object The software timer object
-//! @param time_in_seconds The time after which the timer expires
-//! @return Returns the flags with information about the calculated duration
-software_timer_duration_flag_t software_timer_set_duration(software_timer_t * object, double time_in_seconds);
-
-//! @brief Starts the timer
-//!
-//! @param[in,out] object The software timer object
-void software_timer_start (software_timer_t *object);
-
-//! @brief Stops the software timer
-//!
-//! @param[in,out] object The software timer object
-void software_timer_stop (software_timer_t *object);
-
 //! @brief  Checks if the timer is elapsed
 //!
 //! @details The handler assigned to the function pointer ::software_timer_t::tick is called.
@@ -294,6 +233,67 @@ bool software_timer_elapsed (software_timer_t *object);
 //! @retval true  when the timer has elapsed
 //! @retval false if the timer has not yet expired
 bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object);
+
+//! @brief Converts the timestamp value into a seconds value
+//!
+//! @param[in,out] timestamp Pointer to the timer values
+//! @return Returns the time in seconds
+double software_timer_get_time (software_timer_timestamp_t * timestamp);
+
+//! @brief Converts the timestamp to the standard structure timespec
+//!
+//! @param[out] result_timespec Standard ::timespec struct.
+//! @param[in] timestamp of the software timer.
+void software_timer_get_timespec (struct timespec * result_timespec, software_timer_timestamp_t * timestamp);
+
+//! @brief Reads the current values of the underlying timer
+//!
+//! @param[in,out] object The software timer object
+//! @param[out] timestamp Pointer to the structure in which the values are to be saved
+void software_timer_get_timestamp (software_timer_t * object, software_timer_timestamp_t * timestamp);
+
+//! @brief Initializes the timer, normally it is better to use ::SOFTWARE_TIMER_INIT_HALT()
+//!
+//! @param[out] object The software timer object
+//! @param[in] timer_info Address of the underlying hardware timer
+void software_timer_init_halt (software_timer_t * object, software_timer_timer_info_t * timer_info);
+
+//! @brief Checks if the timer is running
+//!
+//! @param[in] object The software timer object
+//! @retval true  when the timer is running
+//! @retval false if the timer is stopped
+bool software_timer_is_running (software_timer_t * object);
+
+//! @brief Checks if the timer is stopped
+//!
+//! @param[in] object The software timer object
+//! @retval true  when the timer is stopped
+//! @retval false if the timer is running
+bool software_timer_is_stopped (software_timer_t * object);
+
+//! @brief Sets the duration of the specified timer object according to the specified time
+//!
+//! @param[in,out] object The software timer object
+//! @param time_in_seconds The time after which the timer expires
+//! @return Returns the flags with information about the calculated duration
+software_timer_duration_flag_t software_timer_set_duration(software_timer_t * object, double time_in_seconds);
+
+//! @brief Starts the timer
+//!
+//! @param[in,out] object The software timer object
+void software_timer_start (software_timer_t *object);
+
+//! @brief Stops the software timer
+//!
+//! @param[in,out] object The software timer object
+void software_timer_stop (software_timer_t *object);
+
+//! @brief Calculates `result_and_minuend = result_and_minuend - subtrahend`
+//!
+//! @param[in,out] result_and_minuend Minuend
+//! @param[in] subtrahend Subtrahend
+void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minuend, software_timer_timestamp_t * subtrahend);
 
 
 /*---------------------------------------------------------------------*
