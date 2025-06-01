@@ -76,7 +76,7 @@ struct timespec
     /* .time_in_seconds    */ (0),                   \
     /* .ticks_per_second   */ (0),                   \
     /* .timer_info         */ (TIMER_INFO_ADDRESS),  \
-    /* .tick               */ (0)                    \
+    /* .tick               */ (NULL)                 \
 }                                                  /*;*/
 
 
@@ -95,7 +95,7 @@ typedef struct software_timer_s software_timer_t;
 typedef void (*software_timer_handler_t)(software_timer_t * object);
 
 
-//! @brief Return value of the function ::software_timer_set_duration()
+//! @brief Return values of the calculation function for calculating the duration.
 typedef enum
 {
     //! The calculated number matches the selected time
@@ -122,10 +122,9 @@ typedef struct software_timer_timer_info_s
     volatile uint64_t * overflows;
 
     //! @brief Capture compare value of the timer.
-    //! @details The value must be selected
-    //! so that the following statement is true Timer will hold this
-    //! value for one cycle and next cycle it's set to 0, so the value
-    //! `0x0F` will need 16 cycles (4 bit). If it is an overflow interrupt
+    //! @details The value must be selected so that the following statement is true
+    //! Timer will hold this value for one cycle and next cycle it's set to 0, so
+    //! the value `0x0F` will need 16 cycles (4 bit). If it is an overflow interrupt
     //! timer, e.g. a 16-bit timer, `UINT16_MAX` must be selected.
     //! A value corresponding to the conditions of the timer must be used.
     uint16_t capture_compare;
@@ -156,7 +155,7 @@ typedef struct software_timer_timestamp_s
     //! @brief The interrupt increased counter overflow value
     uint64_t overflows;
 
-    //! @brief Pointer to the timer to which the values refer
+    //! @brief Pointer to the data of the hardware timer
     software_timer_timer_info_t * timer_info;
 
 } software_timer_timestamp_t;
@@ -185,13 +184,30 @@ typedef struct software_timer_s
     //! @brief Inverse value of ::software_timer_s::time_in_seconds
     double ticks_per_second;
 
-    //! @brief Pointer to the timer to which the values refer
+    //! @brief Pointer to the data of the hardware timer
     software_timer_timer_info_t * timer_info;
 
-    //! @brief Function that is called after the timer has expired
+    //! @brief Function that is called after the timer has expired, `NULL` is allowed
     software_timer_handler_t tick;
 
 }software_timer_t;
+
+
+//! @brief Information about the duration of a timer
+typedef struct software_timer_duration_s
+{
+    //! @brief Duration of the timer in seconds
+    double time_in_seconds;
+
+    //! @brief Inverse value of ::software_timer_duration_s::time_in_seconds
+    double ticks_per_second;
+
+    //! @brief The duration of the counter after which the timer expires
+    uint16_t duration_counter;
+
+    //! @brief The duration of the overflows, after the timer expires
+    uint64_t duration_overflows;
+}software_timer_duration_t;
 
 
 /*---------------------------------------------------------------------*
@@ -201,12 +217,20 @@ typedef struct software_timer_s
  *  public: function prototypes
  *---------------------------------------------------------------------*/
 
-//! @brief Sets the duration of the specified timer object according to the specified time
+//! @brief Calculates and sets the duration of the specified timer object according to the specified time
 //!
 //! @param[in,out] object The software timer object
 //! @param time_in_seconds The time after which the timer expires
 //! @return Returns the flags with information about the calculated duration
 software_timer_duration_flag_t software_timer_calculate_and_set_duration (software_timer_t * object, double time_in_seconds);
+
+//! @brief Calculates the duration of the specified timer object according to the specified time
+//!
+//! @param[in,out] timer_info Pointer to the data of the hardware timer
+//! @param time_in_seconds The time after which the timer expires
+//! @param[out] duration Duration data based on the hardware timer used and the specified time
+//! @return Returns the flags with information about the calculated duration
+software_timer_duration_flag_t software_timer_calculate_duration (software_timer_timer_info_t * timer_info, double time_in_seconds, software_timer_duration_t * duration);
 
 //! @brief  Checks if the timer is elapsed
 //!
@@ -240,6 +264,12 @@ bool software_timer_elapsed (software_timer_t *object);
 //! @retval true  when the timer has elapsed
 //! @retval false if the timer has not yet expired
 bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object);
+
+//! @brief Gets the duration data of the software timer object
+//!
+//! @param[in,out] object The software timer object
+//! @param[out] duration Duration data based on the hardware timer used and the specified time
+void software_timer_get_duration (software_timer_t * object, software_timer_duration_t * duration);
 
 //! @brief Converts the timestamp value into a seconds value
 //!
@@ -279,6 +309,12 @@ bool software_timer_is_running (software_timer_t * object);
 //! @retval false if the timer is running
 bool software_timer_is_stopped (software_timer_t * object);
 
+//! @brief Sets the duration data of the software timer object
+//!
+//! @param[in,out] object The software timer object
+//! @param[in] duration Duration data based on the hardware timer used and the specified time
+void software_timer_set_duration (software_timer_t * object, software_timer_duration_t * duration);
+
 //! @brief Starts the timer
 //!
 //! @param[in,out] object The software timer object
@@ -299,23 +335,6 @@ void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minue
 /*---------------------------------------------------------------------*
  *  public: static inline functions
  *---------------------------------------------------------------------*/
-
-//! @brief To speed up the ::software_timer_set_duration() function, the values can be calculated in advance
-//!
-//! @param[out] object The software timer object
-//! @param time_in_seconds The time after the timer expires
-//! @param ticks_per_second The reciprocal of ::software_timer_s::time_in_seconds
-//! @param duration_counter The calculated duration of the counter
-//! @param duration_overflows The calculated duration of the overflows
-INLINE void SOFTWARE_TIMER_SET_DURATION (software_timer_t * object, double time_in_seconds, double ticks_per_second, uint16_t duration_counter, uint64_t duration_overflows)
-{
-    object->time_in_seconds = time_in_seconds;
-    object->ticks_per_second = ticks_per_second;
-    object->duration_counter = duration_counter;
-    object->duration_overflows = duration_overflows;
-}
-
-
 /*---------------------------------------------------------------------*
  *  eof
  *---------------------------------------------------------------------*/

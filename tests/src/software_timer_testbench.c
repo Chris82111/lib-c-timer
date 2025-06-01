@@ -224,7 +224,7 @@ void software_timer_test_get_timestamp()
 
 #endif
 
-#if true // test software_timer_set_duration
+#if true // test software_timer_calculate_and_set_duration
 
 void software_timer_test_set_duration_16bit()
 {
@@ -245,102 +245,102 @@ void software_timer_test_set_duration_16bit()
 
     software_timer_duration_flag_t flag;
 
-    flag = software_timer_set_duration(&timer_1,  10.0e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1,  10.0e-9);
     assert( ( SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE | SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER ) == flag );
     assert( 1 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
     assert( ( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS ) == flag );
     assert( 1 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  40.0e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1,  40.0e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER == flag );
     assert( 2 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  47.058823529411764705882352941176e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1,  47.058823529411764705882352941176e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 2 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1, 400.0e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1, 400.0e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 17 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,   4.0e-6);
+    flag = software_timer_calculate_and_set_duration(&timer_1,   4.0e-6);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 170 == timer_1.duration_counter );
     assert( 0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,   1.0e-3);
+    flag = software_timer_calculate_and_set_duration(&timer_1,   1.0e-3);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 42500 == timer_1.duration_counter );
     assert(     0 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,   4.0e-3);
+    flag = software_timer_calculate_and_set_duration(&timer_1,   4.0e-3);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 38928 == timer_1.duration_counter );
     assert(     2 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  10.0e-3);
+    flag = software_timer_calculate_and_set_duration(&timer_1,  10.0e-3);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 31784 == timer_1.duration_counter );
     assert(     6 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1, 500.0e-3);
+    flag = software_timer_calculate_and_set_duration(&timer_1, 500.0e-3);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 16336 == timer_1.duration_counter );
     assert(   324 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,   1.0e-0); // 1 sec
+    flag = software_timer_calculate_and_set_duration(&timer_1,   1.0e-0); // 1 sec
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 32672 == timer_1.duration_counter );
     assert(   648 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  30.0e-0); // 30 sec
+    flag = software_timer_calculate_and_set_duration(&timer_1,  30.0e-0); // 30 sec
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 62656 == timer_1.duration_counter );
     assert( 19454 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  60.0e-0); // 1 min
+    flag = software_timer_calculate_and_set_duration(&timer_1,  60.0e-0); // 1 min
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 59776 == timer_1.duration_counter );
     assert( 38909 == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  1800.0e-0); // 30 min
+    flag = software_timer_calculate_and_set_duration(&timer_1,  1800.0e-0); // 30 min
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 23808 == timer_1.duration_counter );
     assert( UINT64_C(1167297) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  3600.0e-0); // 1h
+    flag = software_timer_calculate_and_set_duration(&timer_1,  3600.0e-0); // 1h
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 47616 == timer_1.duration_counter );
     assert( UINT64_C(2334594) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  86400.0e-0); // 24 h
+    flag = software_timer_calculate_and_set_duration(&timer_1,  86400.0e-0); // 24 h
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 28672 == timer_1.duration_counter );
     assert( UINT64_C(56030273) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  108000.0e-0); // 30 h
+    flag = software_timer_calculate_and_set_duration(&timer_1,  108000.0e-0); // 30 h
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 52224 == timer_1.duration_counter );
     assert( UINT64_C(70037841) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  2592000.0e-0); // 30 days
+    flag = software_timer_calculate_and_set_duration(&timer_1,  2592000.0e-0); // 30 days
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 8192 == timer_1.duration_counter );
     assert( UINT64_C(1680908203) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  31536000.0e-0); // 365 days
+    flag = software_timer_calculate_and_set_duration(&timer_1,  31536000.0e-0); // 365 days
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 45056 == timer_1.duration_counter );
     assert( UINT64_C(20451049804) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1,  28.5E15 ); // 903,729,071 years, 196 days, 2 hours, 40 minutes, 0 seconds
+    flag = software_timer_calculate_and_set_duration(&timer_1,  28.5E15 ); // 903,729,071 years, 196 days, 2 hours, 40 minutes, 0 seconds
     assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == flag );
     assert( UINT16_MAX == timer_1.duration_counter );
     assert( UINT64_MAX == timer_1.duration_overflows );
@@ -365,17 +365,17 @@ void software_timer_test_set_duration_4bit()
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
     timer_1.tick = print_timer_info;
 
-    flag = software_timer_set_duration(&timer_1, 117.64705882352941176470588235294e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1, 117.64705882352941176470588235294e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 5 == timer_1.duration_counter );
     assert( UINT64_C(0) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1, 117.647e-9);
+    flag = software_timer_calculate_and_set_duration(&timer_1, 117.647e-9);
     assert( SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER == flag );
     assert( 5 == timer_1.duration_counter );
     assert( UINT64_C(0) == timer_1.duration_overflows );
 
-    flag = software_timer_set_duration(&timer_1, 1.0);
+    flag = software_timer_calculate_and_set_duration(&timer_1, 1.0);
     assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == flag );
     assert( 0 == timer_1.duration_counter );
     assert( UINT64_C(2656250) == timer_1.duration_overflows );
@@ -398,7 +398,15 @@ void software_timer_test_set_duration_inline()
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
     timer_1.tick = print_timer_info;
 
-    SOFTWARE_TIMER_SET_DURATION(&timer_1,  31536000.0e-0, 31.709791983764586504312531709792e-9, 45056, UINT64_C(20451049804)); // 365 days
+    software_timer_duration_t duration =
+    {
+        31536000.0e-0,
+        31.709791983764586504312531709792e-9,
+        45056,
+        UINT64_C(20451049804)
+    }; // 365 days
+
+    software_timer_set_duration(&timer_1, &duration);
     assert( 45056 == timer_1.duration_counter );
     assert( UINT64_C(20451049804) == timer_1.duration_overflows );
 }
@@ -440,21 +448,21 @@ void software_timer_test_get_time()
 
     double time = software_timer_get_time(&timestamp);
 
-    software_timer_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
+    software_timer_calculate_and_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
     time = software_timer_get_time(&timestamp);
     assert( 23.529411764705882352941176470588e-9 == time );
 
-    software_timer_set_duration(&timer_1,  40.0e-9);
+    software_timer_calculate_and_set_duration(&timer_1,  40.0e-9);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
     time = software_timer_get_time(&timestamp);
     assert( 47.058823529411764705882352941176e-9 == time );
 
-    software_timer_set_duration(&timer_1,  400.0e-9);
+    software_timer_calculate_and_set_duration(&timer_1,  400.0e-9);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -491,7 +499,7 @@ void software_timer_test_get_timespec()
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
 
-    software_timer_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
+    software_timer_calculate_and_set_duration(&timer_1,  23.529411764705882352941176470588e-9);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -500,7 +508,7 @@ void software_timer_test_get_timespec()
     assert( 23 == timspec_value.tv_nsec );
 
 
-    software_timer_set_duration(&timer_1,  400.0e-9);
+    software_timer_calculate_and_set_duration(&timer_1,  400.0e-9);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -510,7 +518,7 @@ void software_timer_test_get_timespec()
 
 
     // Lose in significance
-    software_timer_set_duration(&timer_1,  9876543210.1234567898);
+    software_timer_calculate_and_set_duration(&timer_1,  9876543210.1234567898);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -519,7 +527,7 @@ void software_timer_test_get_timespec()
     assert(  123456954 == timspec_value.tv_nsec );
 
     // Time is round up
-    software_timer_set_duration(&timer_1,  9876543210.999999999999);
+    software_timer_calculate_and_set_duration(&timer_1,  9876543210.999999999999);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -529,7 +537,7 @@ void software_timer_test_get_timespec()
 
 
     // Time is round up
-    software_timer_set_duration(&timer_1,  0.1234567898);
+    software_timer_calculate_and_set_duration(&timer_1,  0.1234567898);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp);
@@ -639,12 +647,12 @@ void software_timer_test_sub_timestamp()
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
 
-    software_timer_set_duration(&timer_1, 1000.0e-3);
+    software_timer_calculate_and_set_duration(&timer_1, 1000.0e-3);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &result_and_minuend);
 
-    software_timer_set_duration(&timer_1,  500.0e-3);
+    software_timer_calculate_and_set_duration(&timer_1,  500.0e-3);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp_subtrahend);
@@ -655,12 +663,12 @@ void software_timer_test_sub_timestamp()
     assert( 500.0e-3 == time );
 
 
-    software_timer_set_duration(&timer_1, 333.0e-3);
+    software_timer_calculate_and_set_duration(&timer_1, 333.0e-3);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &result_and_minuend);
 
-    software_timer_set_duration(&timer_1,  223.0e-3);
+    software_timer_calculate_and_set_duration(&timer_1,  223.0e-3);
     hw_timer_1.counter = timer_1.duration_counter;
     hw_timer_1.overflows = timer_1.duration_overflows;
     software_timer_get_timestamp(&timer_1, &timestamp_subtrahend);
@@ -1991,7 +1999,7 @@ bool software_timer_test(void)
     // test software_timer_get_timestamp
     software_timer_test_get_timestamp();
 
-    // test software_timer_set_duration
+    // test software_timer_calculate_and_set_duration
     software_timer_test_set_duration_16bit();
     software_timer_test_set_duration_4bit();
     software_timer_test_set_duration_inline();
