@@ -29,6 +29,7 @@ const struct software_timer_sc software_timer =
     software_timer_calculate_and_set_duration,
     software_timer_calculate_duration,
     software_timer_elapsed,
+    software_timer_elapsed_once,
     software_timer_elapsed_prevent_multiple_triggers,
     software_timer_get_duration,
     software_timer_get_time,
@@ -76,11 +77,11 @@ software_timer_duration_flag_t software_timer_calculate_duration (const software
 
     duration->ticks_per_second = 1.0 / time_in_seconds;
 
-    // @info: The first variable must be cast because the calculation can exceed 64 bits,
+    // @info: The first variable is double and must be double because the calculation can exceed 64 bits,
     // the second and third cast removes the warning that accuracy could be lost with the cast
-    double duration_overflows_dbl = ( (double)time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
+    double next_duration_overflows = ( time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
 
-    if( UINT64_MAX < duration_overflows_dbl )
+    if( UINT64_MAX < next_duration_overflows )
     {
         flags = (software_timer_duration_flag_t) (flags | SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX);
         duration_overflows = UINT64_MAX;
@@ -88,22 +89,22 @@ software_timer_duration_flag_t software_timer_calculate_duration (const software
     }
     else
     {
-        duration_overflows = (uint64_t)duration_overflows_dbl;
+        duration_overflows = (uint64_t)next_duration_overflows;
 
-        // @info: The first variable must be cast because the calculation can exceed 64 bits,
+        // @info: The first variable is double and must be double because the calculation can exceed 64 bits,
         // the second and third cast removes the warning that accuracy could be lost with the cast
-        double duration_counter_dbl =
-            ( (double)time_in_seconds * (double)ticks_per_second ) -
+        double next_duration_counter =
+            ( time_in_seconds * (double)ticks_per_second ) -
             ( (double)duration_overflows * (( (uint32_t)timer_info->capture_compare) + 1));
 
-        duration_counter = (uint16_t)duration_counter_dbl;
+        duration_counter = (uint16_t)next_duration_counter;
 
         if(0 == duration_counter && 0 == duration_overflows)
         {
             flags = (software_timer_duration_flag_t) (flags | SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE);
         }
 
-        if(duration_counter_dbl > duration_counter)
+        if(next_duration_counter > duration_counter)
         {
             ++duration_counter;
             flags = (software_timer_duration_flag_t) (flags | SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER);
@@ -155,6 +156,8 @@ bool software_timer_elapsed (software_timer_t *object)
 
     if(((counter >= end_counter) && (overflows == end_overflows)) || (overflows > end_overflows))
     {
+        if(NULL != object->on_tick) { object->on_tick(object); }
+
         uint16_t duration_counter = object->duration_counter;
         uint64_t duration_overflows = object->duration_overflows;
 
@@ -174,7 +177,46 @@ bool software_timer_elapsed (software_timer_t *object)
         object->end_overflows = end_overflows;
         object->end_counter = (uint16_t)end_counter;
 
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool software_timer_elapsed_once (software_timer_t *object)
+{
+    const software_timer_timer_info_t * const timer_info = object->timer_info;
+    volatile uint64_t * overflows_ptr = timer_info->overflows;
+    volatile uint16_t * counter_ptr = timer_info->counter;
+
+#if true
+
+    uint64_t overflows = *overflows_ptr;
+    uint16_t counter = *counter_ptr;
+
+#else
+
+    uint16_t counter_a = *counter_ptr;
+    uint64_t overflows = *overflows_ptr;
+    uint16_t counter = *counter_ptr;
+
+    if(counter < counter_a)
+    {
+        overflows = *overflows_ptr;
+    }
+
+#endif
+
+    uint64_t end_overflows = object->end_overflows;
+    uint32_t end_counter = object->end_counter;
+
+    if(((counter >= end_counter) && (overflows == end_overflows)) || (overflows > end_overflows))
+    {
         if(NULL != object->on_tick) { object->on_tick(object); }
+
+        object->end_overflows = UINT64_MAX;
 
         return true;
     }
@@ -213,6 +255,8 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
 
     if(((counter >= end_counter) && (overflows == end_overflows)) || (overflows > end_overflows))
     {
+        if(NULL != object->on_tick) { object->on_tick(object); }
+
         uint16_t duration_counter = object->duration_counter;
         uint64_t duration_overflows = object->duration_overflows;
 
@@ -255,8 +299,6 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
         object->end_overflows = end_overflows;
         object->end_counter = (uint16_t)end_counter;
 
-        if(NULL != object->on_tick) { object->on_tick(object); }
-
         return true;
     }
     else
@@ -280,9 +322,9 @@ double software_timer_get_time (const software_timer_timestamp_t * timestamp)
     double seconds_per_tick = timer_info->seconds_per_tick;
     double counter = seconds_per_tick * timestamp->counter;
 
-    // @info: The first variable must be cast because the calculation can exceed 64 bits,
+    // @info: The first variable is double and must be double because the calculation can exceed 64 bits,
     // the second cast removes the warning that accuracy could be lost with the cast
-    double overflow = ( (double)seconds_per_tick * (double)timestamp->overflows * ( (uint32_t)timer_info->capture_compare + 1));
+    double overflow = ( seconds_per_tick * (double)timestamp->overflows * ( (uint32_t)timer_info->capture_compare + 1));
 
     return overflow + counter;
 }
@@ -375,6 +417,7 @@ void software_timer_init_halt (software_timer_t * object, const software_timer_t
     object->ticks_per_second = 0;
     object->timer_info = timer_info;
     object->on_tick = NULL;
+    object->user_data = NULL;
 }
 
 bool software_timer_is_running (const software_timer_t * object)

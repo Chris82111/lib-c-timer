@@ -76,7 +76,8 @@ struct timespec
     /* .time_in_seconds    */ (0),                   \
     /* .ticks_per_second   */ (0),                   \
     /* .timer_info         */ (TIMER_INFO_ADDRESS),  \
-    /* .tick               */ (NULL)                 \
+    /* .on_tick            */ (NULL),                \
+    /* .user_data          */ (NULL),                \
 }                                                  /*;*/
 
 
@@ -190,6 +191,9 @@ typedef struct software_timer_s
     //! @brief Function that is called after the timer has expired, `NULL` is allowed
     software_timer_handler_t on_tick;
 
+    //! @brief Optional pointer to user data, `NULL` is allowed
+    void * user_data;
+
 }software_timer_t;
 
 
@@ -217,6 +221,7 @@ struct software_timer_sc
     software_timer_duration_flag_t (*CalculateAndSetDuration) (software_timer_t * object, double time_in_seconds);
     software_timer_duration_flag_t (*CalculateDuration) (const software_timer_timer_info_t * const timer_info, double time_in_seconds, software_timer_duration_t * duration);
     bool (*Elapsed) (software_timer_t *object);
+    bool (*ElapsedOnce) (software_timer_t *object);
     bool (*ElapsedPreventMultipleTriggers) (software_timer_t *object);
     void (*GetDuration) (const software_timer_t * object, software_timer_duration_t * duration);
     double (*GetTime) (const software_timer_timestamp_t * timestamp);
@@ -280,6 +285,17 @@ software_timer_duration_flag_t software_timer_calculate_duration (const software
 //! @retval true  when the timer has elapsed
 //! @retval false if the timer has not yet expired
 bool software_timer_elapsed (software_timer_t *object);
+
+//! @brief  Checks if the timer is elapsed
+//!
+//! @details After the time has been reached, the timer is stopped
+//!
+//! If this behavior is not desired, see ::software_timer_elapsed()
+//!
+//! @param[in,out] object The software timer object
+//! @retval true  when the timer has elapsed
+//! @retval false if the timer has not yet expired
+bool software_timer_elapsed_once (software_timer_t *object);
 
 //! @brief Checks if the timer is elapsed and prevent multiple triggers
 //!
