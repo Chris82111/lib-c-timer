@@ -1926,7 +1926,85 @@ void software_timer_slow_checking_prevent_multiple_triggers()
     assert( false == ticked );
 }
 
+void software_timer_max_seconds()
+{
+    print_function_info(__func__);
 
+    hardware_timer_t hw_timer_1 =
+    {
+        .counter = 0,
+        .capture_compare = 65535,
+        .overflows = 0,
+        .overflow_event = NULL,
+    };
+
+    software_timer_timer_info_t sw_timer_1 =
+    {
+        .counter = &hw_timer_1.counter,
+        .overflows = &hw_timer_1.overflows,
+        .capture_compare = 65535,
+        .prescaler = 4,
+        .ticks_per_second = UINT64_C(42500000),
+        .seconds_per_tick = 1.0 / 42500000.0,
+        .capture_compare_inverse = 1.0 / (65535.0 + 1.0),
+    };
+
+    software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
+
+    double max_sec = SOFTWARE_TIMER_MAX_SECONDS_DEF(&sw_timer_1);
+
+    software_timer_duration_flag_t state =
+        software_timer_calculate_and_set_duration(&timer_1, 1.0);
+
+    state = software_timer_calculate_and_set_duration(&timer_1, 10.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS == state );
+
+    state = software_timer_calculate_and_set_duration(&timer_1, 28445313402697156.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, max_sec);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 10000000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 100000000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+    state = software_timer_calculate_and_set_duration(&timer_1, 1000000000000000000000.0);
+    assert( SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX == state );
+
+}
 
 
 #endif
@@ -1947,9 +2025,9 @@ software_timer_timer_info_t timer_info_1 =
 {
     .counter = &counter,
     .overflows = &overflows,
-    .capture_compare = 65535,
-    .prescaler = 4,
-    .ticks_per_second = UINT64_C(42500000),
+    .capture_compare = 65535, // UINT16_MAX
+    .prescaler = 4, // freely selectable
+    .ticks_per_second = UINT64_C(42500000), // 170 MHz / 4
     .seconds_per_tick = 1.0 / 42500000.0,
     .capture_compare_inverse = 1.0 / (65535.0 + 1.0),
 };
@@ -2071,6 +2149,7 @@ bool software_timer_test(void)
     software_timer_late_interrupt();
     software_timer_slow_checking();
     software_timer_slow_checking_prevent_multiple_triggers();
+    software_timer_max_seconds();
 
     software_timer_run_example_1();
 

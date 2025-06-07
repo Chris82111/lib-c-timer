@@ -81,7 +81,7 @@ software_timer_duration_flag_t software_timer_calculate_duration (const software
     // the second and third cast removes the warning that accuracy could be lost with the cast
     double next_duration_overflows = ( time_in_seconds * (double)timer_info->capture_compare_inverse ) *  (double)ticks_per_second;
 
-    if( UINT64_MAX < next_duration_overflows )
+    if( UINT64_MAX <= next_duration_overflows )
     {
         flags = (software_timer_duration_flag_t) (flags | SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX);
         duration_overflows = UINT64_MAX;

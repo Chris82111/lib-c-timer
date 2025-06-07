@@ -67,6 +67,8 @@ struct timespec
 
 
 //! @brief This macro initializes the software timer and stops the timer.
+//!
+//! param TIMER_INFO_ADDRESS Provides information about the hardware timer, is of type ::software_timer_timer_info_s
 #define SOFTWARE_TIMER_INIT_HALT(TIMER_INFO_ADDRESS) \
 {                                                    \
     /* .end_counter        */ (0),                   \
@@ -85,6 +87,9 @@ struct timespec
  *  public: typedefs
  *---------------------------------------------------------------------*/
 
+//! @brief Forward declaration
+struct software_timer_s;
+
 //! @brief Forward typedef, for information see ::software_timer_s
 typedef struct software_timer_s software_timer_t;
 
@@ -102,11 +107,11 @@ typedef enum
     //! The calculated number matches the selected time
     SOFTWARE_TIMER_DURATION_FLAG_DURATION_FITS = 0x00,
 
-    //! The calculated number is smaller than 0
-    SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE   = 0x01,
-
     //! The calculated number is not a whole number and has been rounded up
-    SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER    = 0x02,
+    SOFTWARE_TIMER_DURATION_FLAG_NO_INTEGER    = 0x01,
+
+    //! The calculated number is smaller than 0
+    SOFTWARE_TIMER_DURATION_FLAG_SMALLER_ONE   = 0x02,
 
     //! The calculated number is greater than the maximum (`UINT64_MAX`)
     SOFTWARE_TIMER_DURATION_FLAG_GREATER_MAX   = 0x04,
@@ -381,6 +386,17 @@ void software_timer_sub_timestamp (software_timer_timestamp_t * result_and_minue
 /*---------------------------------------------------------------------*
  *  public: static inline functions
  *---------------------------------------------------------------------*/
+
+//! @brief Maximum seconds that can be set based on the hardware timer
+//!
+//! @param timer_info Provides information about the hardware timer
+//! @return Maximum seconds
+INLINE double SOFTWARE_TIMER_MAX_SECONDS(software_timer_timer_info_t * timer_info)
+{
+    return timer_info->seconds_per_tick * (((uint32_t)(timer_info->capture_compare)) + 1) * (double)UINT64_MAX;
+}
+
+
 /*---------------------------------------------------------------------*
  *  eof
  *---------------------------------------------------------------------*/

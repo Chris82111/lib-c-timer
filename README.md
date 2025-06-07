@@ -1,8 +1,48 @@
 # Software Timer
 
-The structures, functions and resulting objects can be used to create any number
-of software timers with only one hardware timer. These timers can use polling to
-implement time-controlled behavior.
+The structures, functions and resulting objects can be used to create any number of 16-bit software timers with only one hardware timer. The timer is designed for single thread applications and enables the realization of a synchronous timer. These timers can use polling to implement time-controlled behavior. Either a branch in the code or a synchronous call of a call-back function using a function handler can be made. To do this, one of the calling function must be executed up cyclically.
+
+## Calling Functions
+
+Various functions are available to implement the logic. Depending on the application, different functions can be used. Methode `Elapsed()` or function `software_timer_elapsed()` guarantees that skipped ticks are made up for:
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./docs/elapsed_dark.svg" />
+  <img
+    alt=""
+    src="./docs/elapsed.svg"
+    width="250" />
+</picture>
+
+With methode `ElapsedPreventMultipleTriggers()` or function `software_timer_elapsed_prevent_multiple_triggers()`, no skipped ticks are made up for:
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./docs/elapsed_prevent_multiple_triggers_dark.svg" />
+  <img
+    alt=""
+    src="./docs/elapsed_prevent_multiple_triggers.svg"
+    width="250" />
+</picture>
+
+Methode `ElapsedOnce()` or function `software_timer_elapsed_once()` waits only once:
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./docs/elapsed_once_dark.svg" />
+  <img
+    alt=""
+    src="./docs/elapsed_once.svg"
+    width="250" />
+</picture>
+
+## Limitation
+
+The limit of the timer is reached when an overflow occurs at the variable `overflows`. This time must be calculated and checked before the library is used. The inline function statement `SOFTWARE_TIMER_MAX_SECONDS()` can be used for this purpose. If the runtime of the system comes close to this time, the library cannot be used safely. For the following example, the time is approx. 901,994,970.9 years.
 
 ## Example
 
@@ -26,9 +66,9 @@ software_timer_timer_info_t timer_info_1 =
 {
     .counter = &counter,
     .overflows = &overflows,
-    .capture_compare = 65535,
-    .prescaler = 4,
-    .ticks_per_second = UINT64_C(42500000),
+    .capture_compare = 65535, // UINT16_MAX
+    .prescaler = 4, // freely selectable
+    .ticks_per_second = UINT64_C(42500000), // 170 MHz / 4
     .seconds_per_tick = 1.0 / 42500000.0,
     .capture_compare_inverse = 1.0 / (65535.0 + 1.0),
 };
