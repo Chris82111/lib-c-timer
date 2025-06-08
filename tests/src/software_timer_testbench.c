@@ -1951,7 +1951,7 @@ void software_timer_max_seconds()
 
     software_timer_t timer_1 = SOFTWARE_TIMER_INIT_HALT(&sw_timer_1);
 
-    double max_sec = SOFTWARE_TIMER_MAX_SECONDS_DEF(&sw_timer_1);
+    double max_sec = SOFTWARE_TIMER_MAX_SECONDS(&sw_timer_1);
 
     software_timer_duration_flag_t state =
         software_timer_calculate_and_set_duration(&timer_1, 1.0);
