@@ -164,7 +164,7 @@ bool software_timer_elapsed (software_timer_t *object)
         end_counter += duration_counter;
         end_overflows += duration_overflows;
 
-        uint32_t capture_compare = UINT32_C(1) + timer_info->capture_compare;
+        uint32_t capture_compare = (uint32_t)timer_info->capture_compare + 1;
 
         if( capture_compare <= end_counter )
         {
@@ -263,7 +263,7 @@ bool software_timer_elapsed_prevent_multiple_triggers (software_timer_t *object)
         end_counter += duration_counter;
         end_overflows += duration_overflows;
 
-        uint32_t capture_compare = UINT32_C(1) + timer_info->capture_compare;
+        uint32_t capture_compare = (uint32_t)timer_info->capture_compare + 1;
 
         if( capture_compare <= end_counter )
         {
@@ -458,7 +458,8 @@ void software_timer_start (software_timer_t *object)
     uint32_t end_counter = (uint32_t)counter + object->duration_counter;
     overflows += object->duration_overflows;
 
-    uint32_t capture_compare = UINT32_C(1) + timer_info->capture_compare;
+    uint32_t capture_compare = (uint32_t)timer_info->capture_compare + 1;
+
 
     if( capture_compare <= end_counter )
     {
